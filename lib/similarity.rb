@@ -2,7 +2,9 @@ module Similarity
   
   def score_results(result_paths)
     result_paths.each_with_index do |path, index|
-      result_nodes << ResultNode.new(path, page.at(path).text, index)
+      elem = page.at(path)
+      elem = sanitize_elements(elem)
+      result_nodes << ResultNode.new(path, elem.text.gsub(/\s{2,}/, "\n"), index)
     end
     root = result_nodes.max_by { |node| node.tokens.length } 
     root.score = 1.0
