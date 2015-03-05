@@ -1,27 +1,36 @@
 require 'nokogiri'
 require 'mechanize'
+require 'punkt-segmenter'
 require "article/version"
-require "parser"
+require "scraper"
 require "sanitizer"
+require "similarity"
+require 'result_node'
+require 'set'
 require 'pry'
 
 class Article
   
-  include Parser
+  include Scraper 
   include Sanitizer
+  include Similarity
   
-  attr_reader :page, :result_nodes, :siblings
+  attr_reader :page, :result_nodes
 
   def initialize(url)
     begin
       agent = Mechanize.new
       @page = agent.get url
-      @result_nodes = []
-      # Sibling info for each elem. Stores a boolean for every other parent
-      # based on whether the pair are siblings/grand siblings.
-      @siblings = Hash.new(false)
+      @result_nodes = [] 
     rescue Exception => e
       puts e.backtrace.join("\n")
     end
   end
+  
+  def get_content
+    elems = find_text_elements
+    grouped_elems = group_sibling_elems(elems) 
+    score_results(grouped_elems) 
+  end
+
 end
